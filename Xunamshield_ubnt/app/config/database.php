@@ -3,7 +3,7 @@
 function getDBConnection() {
     $host = "192.168.158.10";
     $port = "5432";
-    $dbname = "xunam_db";
+    $dbname = "postgres";
     $user = "xunam_alien";
     $password = "Xunam3322";
 

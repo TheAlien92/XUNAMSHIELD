@@ -5,6 +5,7 @@ require_once "../app/config/database.php";
 $user_id = $_SESSION["user_id"];
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $pdo = getDBConnection();
 
     $newPassword = password_hash($_POST["new_password"], PASSWORD_BCRYPT);
 

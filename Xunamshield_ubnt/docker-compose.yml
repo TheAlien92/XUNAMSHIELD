@@ -10,7 +10,7 @@ services:
     volumes:
       - .:/var/www/html
     environment:
-      - DB_HOST=192.168.158.10 # IP de tu Ubuntu/Host para conectar a Postgres local
+      - DB_HOST=172.17.0.1 # IP interna del host de Docker
     restart: always
 
   # Servicio para Metabase (Dashboard de Inteligencia)
@@ -25,5 +25,6 @@ services:
       - MB_DB_PORT=5432
       - MB_DB_USER=xunam_alien
       - MB_DB_PASS=Xunam3322
-      - MB_DB_HOST=192.168.158.10
+      - MB_DB_HOST=172.17.0.1 # IP interna del host de Docker
+      - JAVA_OPTS=-Xmx512m -Xms512m # Ayuda a que Metabase no sature la RAM de tu VM
     restart: always

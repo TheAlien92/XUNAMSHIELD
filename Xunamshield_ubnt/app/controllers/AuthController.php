@@ -1,11 +1,14 @@
 <?php
 session_start();
 require_once "../config/database.php";
+require_once "../config/logger.php"; 
 
 header('Content-Type: application/json');
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    echo json_encode(["success" => false]);
+    $respuesta = json_encode(["success" => false]);
+    registrarLog("Acceso no permitido por método " . $_SERVER["REQUEST_METHOD"], "SECURITY", null, strlen($respuesta));
+    echo $respuesta;
     exit;
 }
 
@@ -16,8 +19,8 @@ $pdo = getDBConnection();
 
 $stmt = $pdo->prepare("
     SELECT u.*, r.rol
-    FROM USUARIOS u
-    JOIN ROLES r ON u.rol_id = r.id
+    FROM usuarios u
+    JOIN roles r ON u.rol_id = r.id
     WHERE u.email = ?
 ");
 
@@ -34,14 +37,27 @@ if ($user && $password === $user["password_hash"]) {
     $_SESSION["rol_id"] = $user["rol_id"];
     $_SESSION["rol"] = $user["rol"]; 
     $_SESSION["empresa_id"] = $user["empresas_id"];
-    
 
-
-    echo json_encode([
+    // Preparamos la respuesta para medirla
+    $datosRespuesta = [
         "success" => true,
         "rol_id" => $user["rol_id"]
-    ]);
+    ];
+    $jsonRespuesta = json_encode($datosRespuesta);
+    $bytes = strlen($jsonRespuesta);
+
+    // Registro con Bytes y Empresa
+    registrarLog("Login EXITOSO: Usuario $email", "SUCCESS", $user["empresas_id"], $bytes);
+
+    echo $jsonRespuesta;
 
 } else {
-    echo json_encode(["success" => false]);
+    $datosRespuesta = ["success" => false];
+    $jsonRespuesta = json_encode($datosRespuesta);
+    $bytes = strlen($jsonRespuesta);
+
+    // Registro de fallo con Bytes
+    registrarLog("Login FALLIDO: Credenciales incorrectas para [$email]", "AUTH_ERROR", null, $bytes);
+    
+    echo $jsonRespuesta;
 }

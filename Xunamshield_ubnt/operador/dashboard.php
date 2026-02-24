@@ -14,18 +14,14 @@ $nombre_user   = $_SESSION["nombre"] ?? "Operador";
 
 /* ================= METABASE CONFIG ================= */
 
-$METABASE_SECRET_KEY = "704d2e9df0ad88732018b622234a0dd6004f91b23d11d1a33832d54bd89627ed";
-$METABASE_SITE_URL   = "http://localhost:3000";
+$METABASE_SECRET_KEY = "5ccb66b4fac764354767bb9a3d8c576719acdea475daadadcfffdda48ff94ac0";
+$METABASE_SITE_URL   = "http://192.168.158.10:3000";
 
 $payload = [
     "resource" => ["dashboard" => 2],
     "params" => [
-        "empresa_id_filtro" => [(int)$empresa_id]
+        "id_empresa" => [(int)$empresa_id] // Nombre del parámetro corregido
     ],
-    "_embedding_params" => [
-        "empresa_id_filtro" => "locked"
-    ],
-    "iat" => time(),
     "exp" => time() + (10 * 60)
 ];
 
@@ -50,14 +46,16 @@ try {
     $pdo = getDBConnection();
     $pdo->exec("SET NAMES 'utf8'");
 
-    $stmt_dev = $pdo->prepare("SELECT id, dispositivo_uid, nombre FROM DISPOSITIVOS WHERE empresas_id = ?");
+    // Corregido: dispositivos
+    $stmt_dev = $pdo->prepare("SELECT id, dispositivo_uid, nombre FROM dispositivos WHERE empresas_id = ?");
     $stmt_dev->execute([$empresa_id]);
     $mis_dispositivos = $stmt_dev->fetchAll(PDO::FETCH_ASSOC);
 
+    // Corregido: sensor_data y dispositivos
     $stmt_data = $pdo->prepare("
         SELECT d.nombre as dispositivo, s.temperatura, s.humedad, s.frecuencia, s.peso_total, s.created_at
-        FROM SENSOR_DATA s
-        JOIN DISPOSITIVOS d ON s.dispositivos_id = d.id
+        FROM sensor_data s
+        JOIN dispositivos d ON s.dispositivos_id = d.id
         WHERE d.empresas_id = ?
         ORDER BY s.created_at DESC LIMIT 10
     ");
@@ -68,6 +66,14 @@ try {
     die("Error de base de datos: " . $e->getMessage());
 }
 ?>
+<script defer src="http://192.168.158.10:3000/app/embed.js"></script>
+<script>
+defineMetabaseConfig({
+    theme: { preset: "light" },
+    isGuest: true,
+    instanceUrl: "http://192.168.158.10:3000"
+});
+</script>
 <!DOCTYPE html>
 <html lang="es">
 <head>

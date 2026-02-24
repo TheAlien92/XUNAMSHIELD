@@ -12,7 +12,7 @@ try {
 
         $id = (int) $_GET["delete"];
 
-        $stmt = $pdo->prepare("DELETE FROM DISPOSITIVOS WHERE id = ?");
+        $stmt = $pdo->prepare("DELETE FROM dispositivos WHERE id = ?");
         $stmt->execute([$id]);
 
         header("Location: /admin/dashboard.php");
@@ -26,11 +26,11 @@ try {
 
         $api_key = bin2hex(random_bytes(32));
 
-        $stmt = $pdo->prepare("
-            INSERT INTO DISPOSITIVOS
-            (empresas_id, dispositivo_uid, nombre, api_key, created_at)
-            VALUES (?, ?, ?, ?, NOW())
-        ");
+       $stmt = $pdo->prepare("
+    INSERT INTO dispositivos
+    (empresas_id, dispositivo_uid, nombre, api_key, created_at)
+    VALUES (?, ?, ?, ?, NOW())
+    ");
 
         $stmt->execute([
             $_POST["empresas_id"],

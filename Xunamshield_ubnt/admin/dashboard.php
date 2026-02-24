@@ -6,47 +6,34 @@ if ($_SESSION["rol_id"] != 1) {
     exit;
 }
 require_once "../app/config/database.php";
-if ($_SESSION["rol_id"] != 1) {
-    header("Location: /public/login.php");
-    exit;
-}
+
 try {
     $pdo = getDBConnection();
-    // SOLUCIÓN TILDES
     $pdo->exec("SET NAMES 'utf8'");
 
-    /* CONSULTAS */
-    $empresas = $pdo->query("SELECT * FROM EMPRESAS ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
+    /* CONSULTAS CORREGIDAS A MINÚSCULAS */
+    $empresas = $pdo->query("SELECT * FROM empresas ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
 
     $usuarios = $pdo->query("
         SELECT u.id, u.nombre, u.email, r.rol, e.nombre AS empresa
-        FROM USUARIOS u
-        JOIN ROLES r ON u.rol_id = r.id
-        JOIN EMPRESAS e ON u.empresas_id = e.id
+        FROM usuarios u
+        JOIN roles r ON u.rol_id = r.id
+        JOIN empresas e ON u.empresas_id = e.id
         ORDER BY u.id DESC
     ")->fetchAll(PDO::FETCH_ASSOC);
 
     $dispositivos = $pdo->query("
         SELECT d.id, d.dispositivo_uid, d.nombre, e.nombre AS empresa
-        FROM DISPOSITIVOS d
-        JOIN EMPRESAS e ON d.empresas_id = e.id
+        FROM dispositivos d
+        JOIN empresas e ON d.empresas_id = e.id
         ORDER BY d.id DESC
     ")->fetchAll(PDO::FETCH_ASSOC);
 
 } catch (PDOException $e) {
-    // Si hay un error, detenemos la ejecución y mostramos un aviso limpio
-    die("<div style='font-family:sans-serif; padding:50px; text-align:center;'>
-            <h2>Hubo un problema de conexión 🐝</h2>
-            <p>Lo sentimos, no pudimos cargar los datos en este momento.</p>
-            <a href='dashboard.php' style='color:#E6B800;'>Reintentar</a>
-         </div>");
-}
-
-if ($_SESSION["rol_id"] != 1) {
-    header("Location: /public/login.php");
-    exit;
+    die("Error de conexión: " . $e->getMessage());
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="es">

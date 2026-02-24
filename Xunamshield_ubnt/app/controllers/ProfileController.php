@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['user_id'])) {
     try {
         // 2. Actualizar directamente con la variable $new_password (SIN HASH)
         // Nota: El campo en tu DB se llama password_hash, pero guardaremos texto plano.
-        $stmt = $pdo->prepare("UPDATE USUARIOS SET password_hash = ? WHERE id = ?");
+        $stmt = $pdo->prepare("UPDATE usuarios SET password_hash = ? WHERE id = ?");
         $stmt->execute([$new_password, $user_id]);
 
         echo "<script>

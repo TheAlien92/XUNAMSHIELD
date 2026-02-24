@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <?php
 session_start();
 require_once '../app/config/database.php';
@@ -6,7 +5,7 @@ require_once '../app/config/database.php';
 $error = "";
 ?>
 
-
+<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
