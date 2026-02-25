@@ -1,6 +1,7 @@
 <?php
 require_once "../app/middleware/auth.php";
 
+// Seguridad: Solo administradores
 if ($_SESSION["rol_id"] != 1) {
     header("Location: /public/login.php");
     exit;
@@ -11,7 +12,6 @@ try {
     $pdo = getDBConnection();
     $pdo->exec("SET NAMES 'utf8'");
 
-    /* CONSULTAS CORREGIDAS A MINÚSCULAS */
     $empresas = $pdo->query("SELECT * FROM empresas ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
 
     $usuarios = $pdo->query("
@@ -26,14 +26,13 @@ try {
         SELECT d.id, d.dispositivo_uid, d.nombre, e.nombre AS empresa
         FROM dispositivos d
         JOIN empresas e ON d.empresas_id = e.id
-        ORDER BY d.id DESC
+        ORDER d.id DESC
     ")->fetchAll(PDO::FETCH_ASSOC);
 
 } catch (PDOException $e) {
     die("Error de conexión: " . $e->getMessage());
 }
 ?>
-
 
 <!DOCTYPE html>
 <html lang="es">
@@ -50,6 +49,7 @@ try {
             --bg-light: #F0F2F5;
             --text-main: #333;
             --white: #ffffff;
+            --success: #28a745;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
@@ -58,16 +58,29 @@ try {
         /* --- SIDEBAR --- */
         .sidebar {
             width: 260px; background: var(--bg-dark); color: white;
-            padding: 40px 20px; position: fixed; height: 100vh;
+            padding: 20px; position: fixed; height: 100vh;
+            display: flex; flex-direction: column;
         }
-        .sidebar h2 { color: var(--primary); font-size: 1.5rem; margin-bottom: 50px; text-align: center; }
-        .sidebar button {
+        .sidebar h2 { color: var(--primary); font-size: 1.5rem; margin: 20px 0 30px; text-align: center; }
+        
+        /* Botones de Navegación */
+        .sidebar button, .sidebar .btn-link {
             width: 100%; padding: 14px 20px; margin-bottom: 12px;
             background: rgba(255,255,255,0.05); border: 1px solid transparent;
-            color: #ccc; border-radius: 12px; cursor: pointer; text-align: left; transition: 0.3s;
+            color: #ccc; border-radius: 12px; cursor: pointer; text-align: left; 
+            transition: 0.3s; text-decoration: none; display: block; font-size: 0.9rem;
         }
-        .sidebar button:hover, .sidebar button.active {
+        .sidebar button:hover, .sidebar button.active, .sidebar .btn-link:hover {
             background: var(--primary); color: var(--bg-dark); font-weight: 600;
+        }
+
+        /* Botón Especial de Reporte */
+        .btn-csv {
+            background: var(--success) !important;
+            color: white !important;
+            margin-top: auto; /* Lo empuja hacia abajo */
+            margin-bottom: 20px;
+            text-align: center !important;
         }
 
         /* --- MAIN CONTENT --- */
@@ -108,22 +121,27 @@ try {
             background: var(--white); border-top: 1px solid #eee; text-align: center;
             font-size: 0.85rem; color: #888; z-index: 100;
         }
-
-        .input-error { border-color: #ff4d4d !important; background-color: #fff5f5 !important; animation: shake 0.3s; }
-        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
     </style>
 </head>
 <body>
 
 <div class="sidebar">
     <h2>XunamShield 🐝</h2>
+    
+    <a href="../logs/auth_<?= date('Y-m-d') ?>.log" target="_blank" class="btn-link">📄 Ver Logs Hoy</a>
+    
+    <hr style="opacity: 0.1; margin-bottom: 15px;">
+
     <button onclick="showSection('empresas', this)" class="active">🏢 Empresas</button>
     <button onclick="showSection('usuarios', this)">👤 Usuarios</button>
     <button onclick="showSection('dispositivos', this)">🛡️ Dispositivos</button>
+
+    <a href="../app/controllers/ExportController.php" class="btn-link btn-csv">
+        📥 Descargar Reporte CSV
+    </a>
 </div>
 
 <div class="main">
-    
     <div id="empresas" class="section-container">
         <div class="card">
             <h3>Nueva Empresa</h3>
@@ -220,19 +238,14 @@ try {
                         <td><?= htmlspecialchars($d['nombre']) ?></td>
                         <td><?= htmlspecialchars($d['empresa']) ?></td>
                         <td>
-<button class="btn-delete"
-onclick="if(confirm('¿Eliminar dispositivo?')) 
-window.location.href='../app/controllers/DeviceController.php?delete=<?= $d['id'] ?>'">
-🗑️
-</button>
-</td>
-
+                            <button class="btn-delete" onclick="if(confirm('¿Eliminar dispositivo?')) window.location.href='../app/controllers/DeviceController.php?delete=<?= $d['id'] ?>'">🗑️</button>
+                        </td>
+                    </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
         </div>
     </div>
-
 </div>
 
 <footer>
@@ -240,31 +253,12 @@ window.location.href='../app/controllers/DeviceController.php?delete=<?= $d['id'
 </footer>
 
 <script>
-    // Navegación entre secciones
     function showSection(sectionId, btn) {
         document.querySelectorAll('.section-container').forEach(s => s.classList.add('hidden'));
         document.querySelectorAll('.sidebar button').forEach(b => b.classList.remove('active'));
         document.getElementById(sectionId).classList.remove("hidden");
         btn.classList.add('active');
     }
-
-    // Validación de formularios
-    document.querySelectorAll('form').forEach(form => {
-        form.onsubmit = function(e) {
-            let isValid = true;
-            this.querySelectorAll('input[required], select[required]').forEach(input => {
-                if (!input.value.trim()) {
-                    isValid = false;
-                    input.classList.add('input-error');
-                    input.oninput = () => input.classList.remove('input-error');
-                }
-            });
-            if (!isValid) {
-                e.preventDefault();
-                alert("Completa los campos en rojo.");
-            }
-        };
-    });
 </script>
 
 </body>
