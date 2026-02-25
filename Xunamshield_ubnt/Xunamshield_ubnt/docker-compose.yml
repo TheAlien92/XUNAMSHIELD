@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  # Servicio para tu Aplicación Web (PHP + Apache)
+  xunam-app:
+    build: .
+    container_name: xunam_web_container
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+    environment:
+      - DB_HOST=172.17.0.1 # IP interna del host de Docker
+    restart: always
+
+  # Servicio para Metabase (Dashboard de Inteligencia)
+  metabase:
+    image: metabase/metabase:latest
+    container_name: xunam_metabase
+    ports:
+      - "3000:3000"
+    environment:
+      - MB_DB_TYPE=postgres
+      - MB_DB_DBNAME=xunam_db
+      - MB_DB_PORT=5432
+      - MB_DB_USER=xunam_alien
+      - MB_DB_PASS=Xunam3322
+      - MB_DB_HOST=172.17.0.1 # IP interna del host de Docker
+      - JAVA_OPTS=-Xmx512m -Xms512m # Ayuda a que Metabase no sature la RAM de tu VM
+    restart: always
