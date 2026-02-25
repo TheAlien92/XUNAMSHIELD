@@ -23,10 +23,10 @@ try {
     ")->fetchAll(PDO::FETCH_ASSOC);
 
     $dispositivos = $pdo->query("
-        SELECT d.id, d.dispositivo_uid, d.nombre, e.nombre AS empresa
-        FROM dispositivos d
-        JOIN empresas e ON d.empresas_id = e.id
-        ORDER d.id DESC
+    SELECT d.id, d.dispositivo_uid, d.nombre, e.nombre AS empresa
+    FROM dispositivos d
+    JOIN empresas e ON d.empresas_id = e.id
+    ORDER BY d.id DESC
     ")->fetchAll(PDO::FETCH_ASSOC);
 
 } catch (PDOException $e) {
